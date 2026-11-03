@@ -1,0 +1,59 @@
+name: Windows .exe derle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Depoyu indir
+        uses: actions/checkout@v4
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Bağımlılıkları kur
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      # test.yazici.py -> test_yazici.py olarak yeniden adlandırdıktan sonra
+      # bu adımın başındaki # işaretlerini kaldırıp etkinleştir:
+      # - name: Testleri çalıştır
+      #   run: python -m unittest discover -p "test_*.py"
+
+      - name: Coffy.exe oluştur
+        run: >-
+          python -m PyInstaller --noconfirm --clean --onefile --windowed
+          --name Coffy --add-data "files;files"
+          --hidden-import win32print --hidden-import win32ui --hidden-import win32con
+          arayuz.py
+
+      - name: CoffyArac.exe oluştur
+        run: >-
+          python -m PyInstaller --noconfirm --clean --onefile --console
+          --name CoffyArac --add-data "files;files"
+          --hidden-import win32print --hidden-import win32ui --hidden-import win32con
+          test_baski.py
+
+      - name: PinSifirla.exe oluştur
+        run: >-
+          python -m PyInstaller --noconfirm --clean --onefile --console
+          --name PinSifirla
+          pin_sifirla.py
+
+      - name: Üç .exe dosyasını indirilebilir yap
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coffy-Windows
+          path: dist/*.exe
+          if-no-files-found: error
+          retention-days: 7
